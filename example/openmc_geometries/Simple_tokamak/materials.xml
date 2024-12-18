@@ -1,0 +1,50 @@
+<?xml version='1.0' encoding='utf-8'?>
+<materials>
+  <material id="1" name="Tungsten">
+    <density units="g/cm3" value="19.0"/>
+    <nuclide ao="0.0012" name="W180"/>
+    <nuclide ao="0.265" name="W182"/>
+    <nuclide ao="0.1431" name="W183"/>
+    <nuclide ao="0.3064" name="W184"/>
+    <nuclide ao="0.2843" name="W186"/>
+  </material>
+  <material id="2" name="PbLi">
+    <density units="g/cm3" value="9.956685348"/>
+    <nuclide ao="1.1788" name="Pb204"/>
+    <nuclide ao="20.2922" name="Pb206"/>
+    <nuclide ao="18.6082" name="Pb207"/>
+    <nuclide ao="44.1208" name="Pb208"/>
+    <nuclide ao="14.22" name="Li6"/>
+    <nuclide ao="1.5799999999999996" name="Li7"/>
+  </material>
+  <material id="3" name="EUROFER97">
+    <density units="g/cm3" value="7.75"/>
+    <nuclide name="Fe54" wo="5.028329342218314"/>
+    <nuclide name="Fe56" wo="81.8539346380929"/>
+    <nuclide name="Fe57" wo="1.9241755131415883"/>
+    <nuclide name="Fe58" wo="0.2605605065472099"/>
+    <nuclide name="C12" wo="0.10868075295942553"/>
+    <nuclide name="C13" wo="0.0013192470405744823"/>
+    <nuclide name="Mn55" wo="0.4"/>
+    <nuclide name="Cr50" wo="0.3756317960446482"/>
+    <nuclide name="Cr52" wo="7.532942611621131"/>
+    <nuclide name="Cr53" wo="0.8706228136807665"/>
+    <nuclide name="Cr54" wo="0.22080277865345527"/>
+    <nuclide name="Ta180" wo="1.4332320037885974e-05"/>
+    <nuclide name="Ta181" wo="0.1199856676799621"/>
+    <nuclide name="W180" wo="0.0012920330845320965"/>
+    <nuclide name="W182" wo="0.2884975442391606"/>
+    <nuclide name="W183" wo="0.15664662781291616"/>
+    <nuclide name="W184" wo="0.33724011296121414"/>
+    <nuclide name="W186" wo="0.3163236819021772"/>
+    <nuclide name="N14" wo="0.0029882316399278868"/>
+    <nuclide name="N15" wo="1.1768360072113029e-05"/>
+    <nuclide name="V50" wo="0.0004902406716450924"/>
+    <nuclide name="V51" wo="0.1995097593283549"/>
+  </material>
+  <material id="4" name="coppper">
+    <density units="g/cm3" value="8.96"/>
+    <nuclide ao="0.6915" name="Cu63"/>
+    <nuclide ao="0.3085" name="Cu65"/>
+  </material>
+</materials>

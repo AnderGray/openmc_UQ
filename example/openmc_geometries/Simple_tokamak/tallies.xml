@@ -1,0 +1,36 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<tallies>
+  <mesh id="1">
+    <dimension>200 200 200</dimension>
+    <lower_left>-705 -705 -705</lower_left>
+    <upper_right>705 705 705</upper_right>
+  </mesh>
+  <filter id="1" type="cell">
+    <bins>3</bins>
+  </filter>
+  <filter id="2" type="surface">
+    <bins>4</bins>
+  </filter>
+  <filter id="3" type="particle">
+    <bins>neutron</bins>
+  </filter>
+  <filter id="4" type="mesh">
+    <bins>1</bins>
+  </filter>
+  <tally id="1" name="TBR">
+    <filters>1</filters>
+    <scores>(n,Xt)</scores>
+  </tally>
+  <tally id="2" name="leakage">
+    <filters>2</filters>
+    <scores>current</scores>
+  </tally>
+  <tally id="3" name="Flux_mesh">
+    <filters>3 4</filters>
+    <scores>flux</scores>
+  </tally>
+  <tally id="4" name="TBR_mesh">
+    <filters>1 4</filters>
+    <scores>(n,Xt)</scores>
+  </tally>
+</tallies>

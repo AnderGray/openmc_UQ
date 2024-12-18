@@ -1,0 +1,20 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<settings>
+  <run_mode>fixed source</run_mode>
+  <particles>100000</particles>
+  <batches>10</batches>
+  <inactive>0</inactive>
+  <source particle="neutron" strength="1.0" type="independent">
+    <space origin="0.0 0.0 0.0" type="cylindrical">
+      <r type="discrete">
+        <parameters>275.0 1.0</parameters>
+      </r>
+      <phi parameters="0.0 6.28318530718" type="uniform"/>
+      <z type="discrete">
+        <parameters>0.0 1.0</parameters>
+      </z>
+    </space>
+    <angle type="isotropic"/>
+    <energy parameters="14080000.0 335618.8314144485" type="normal"/>
+  </source>
+</settings>
