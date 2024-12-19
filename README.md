@@ -3,7 +3,7 @@ A fairly clunky workflow for running nuclear data Monte Carlo UQ with OpenMC. Th
 
 Features:
 * OpenMC configuration agnostic (can use DAGMC + libmesh)
-* Convenient HPC resource manager (can use multiple nodes for OpenMC). Enabled through UQ.jl [HPC simulation manager](https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc)
+* Convenient HPC resource manager (can use multiple nodes for OpenMC simulations). Enabled through UQ.jl [HPC simulation manager](https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc)
 * Sample multiple nuclides simultaneously (from available ENDF covariance files)
 
 Contributions to make it less clunky are welcome.
