@@ -42,7 +42,14 @@ Contributions to make it less clunky welcome.
     - `include("MonteCarlo.jl")`
     - Or submit `julia -e 'include("MonteCarlo.jl")'` in a slurm script with 1 task
     
-This should produce the similar figures to `example/simple_tokamak/figures`
+This should produce the similar figures to `example/simple_tokamak/figures`. If you're not interested in computing a failure probability, the limitstate function can be ignored. You make also simulate samples without using `probability_of_failure` function. This can be done by
+
+```julia
+samples = sample(inputs)
+evaluate!(ext, samples)
+```
+Where `inputs` and `ext` are the inputs and external model as defined in `MonteCarlo.jl`. The tallies of interest must then be extracted manually however.
+
 ## To run your example
 
 In addition to the above instructions:
@@ -51,8 +58,8 @@ In addition to the above instructions:
 2. Change [this directory](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L22) to the directory of your model (.xml files, .h5m files, ...)
 3. Change the list of nuclides you wish to sample [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L17)
 4. Output your tally of interest [in lines 65-79](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L65)
-5. Change the extractor to you tally of interest [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L33)
-   - Currently only scalar tallies can be "extracted", but you can generate samples of any tally (e.g. spectra, meshes)
+5. Change the extractor to your tally of interest [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L33)
+   - Currently only scalar tallies can be "extracted", but you can generate samples of any tally (e.g. spectra, meshes), and extract them yourself.
      
 6. Change the `nodes` and `ntasks` to your desired resources, [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L74)
    - If you increase the `nodes` to more than 1, you must match it [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/src/run_openmc.py#L64) 😅
