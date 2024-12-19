@@ -6,6 +6,7 @@ Features:
 * Convenient HPC resource manager (can use multiple nodes for OpenMC). Enabled through UQ.jl [HPC simulation manager](https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc)
 * Sample multiple nuclides simultaneously (from available ENDF covariance files)
 
+Contributions to make it less clunky welcome.
 
 ## Installation
 
