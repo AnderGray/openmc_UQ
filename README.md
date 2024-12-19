@@ -55,13 +55,13 @@ In addition to the above instructions:
    - Currently only scalar tallies can be "extracted", but you can generate samples of any tally (e.g. spectra, meshes)
      
 6. Change the `nodes` and `ntasks` to your desired resources, [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L74)
-   - If you increase the `nodes` to more than 1, you must match it [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/src/run_openmc.py#L64) (sorry)
+   - If you increase the `nodes` to more than 1, you must match it [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/src/run_openmc.py#L64) 😅
        
-8. (Sorry) Change the length of the 'seeds' [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L31) to the length of the nuclides
+8. 😅 Change the length of the 'seeds' [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L31) to the length of the nuclides
    - If `nuclides = ["Fe54", "Fe56"]`, then `seeds = [{{{   :X1   }}}, {{{   :X2   }}}]`
    - If `len(nuclides) == 50`, then `seeds = [{{{   :X1   }}}, {{{   :X2   }}}, ... , {{{   :X50   }}}]`
-9. (Sorry) Do the same for the RandomVariables [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L6) and [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L17)
+9. 😅 Do the same for the RandomVariables [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L6) and [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L17)
     
 10. Run it!
 
-The "sorrys" are locations where the workflow can be clearly improved (among other places)
+The "😅" are locations where the workflow can be clearly improved (among other places)
