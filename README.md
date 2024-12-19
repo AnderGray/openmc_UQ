@@ -61,4 +61,7 @@ In addition to the above instructions:
    - If `nuclides = ["Fe54", "Fe56"]`, then `seeds = [{{{   :X1   }}}, {{{   :X2   }}}]`
    - If `len(nuclides) == 50`, then `seeds = [{{{   :X1   }}}, {{{   :X2   }}}, ... , {{{   :X50   }}}]`
 9. (Sorry) Do the same for the RandomVariables [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L6) and [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L17)
+    
+10. Run it!
 
+The "sorrys" are locations where the workflow can be clearly improved (among other places)
