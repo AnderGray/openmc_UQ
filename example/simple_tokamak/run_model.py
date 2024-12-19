@@ -5,7 +5,7 @@ from multiprocessing import Pool
 import openmc
 
 
-top_dir = "/home/ir-gray4/work/sims/nuclear_data_UQ"        # Top directory of the python scripts
+top_dir = "/home/ir-gray4/work/sims/openmc_UQ"        # Top directory of the python scripts
 sys.path.insert(1, f'{top_dir}/src')
 from sample_nuclide import sample_nuclide_sandy
 from run_openmc import run_openmc
