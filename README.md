@@ -26,14 +26,22 @@ Contributions to make it less clunky welcome.
  
 ## To run my example
 
-1. Modify the top path in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L8), to the path to the 
+1. Modify your top path in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L8) (the top directory of this repo)
 2. Modify your endf path in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L19)
 3. Modify your openmc cross_sections.xml path in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L25)
 4. Change my HPC credentials to your HPC credentials (plus your desired partition etc) in [these lines](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L70)
    - You can optionally change the `throttle` (max samples run simultaneous)
    - You can optionally change `ntasks` (5 cores gives a simulation time ~2 mins per simulation)
    - You can optionally set a `batchsize` (max sample submitted simultaneous) see [docs](https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc)
- 
+   - You can optionally change the number of samples [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L96). Currently set to 1000 samples
+     
+5. Modify the "extras" that will be injected into slurm script to run your model, in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L82)
+    - For me, this was loading openmc, activating my python environment, and loading NJOY
+6. Run it! From inside `examples/simple_tokamak`
+    - `julia`
+    - `include("MonteCarlo.jl")`
+    - Or submit `julia -e 'include("MonteCarlo.jl")'` in a slurm script with 1 task
+    
 
 ## To run your example
 
