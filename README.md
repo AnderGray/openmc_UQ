@@ -1,5 +1,5 @@
 # openmc_UQ
-A fairly clunky workflow for running nuclear data Monte Carlo UQ with OpenMC. The workflow wraps the [SANDY](https://github.com/luca-fiorito-11/sandy) and [OpenMC](https://github.com/openmc-dev/openmc) in [UncertaintyQuantification.jl](https://github.com/FriesischScott/UncertaintyQuantification.jl)
+A fairly clunky workflow for running nuclear data Monte Carlo UQ with OpenMC. The workflow wraps the [SANDY](https://github.com/luca-fiorito-11/sandy) and [OpenMC](https://github.com/openmc-dev/openmc) in [UncertaintyQuantification.jl](https://github.com/FriesischScott/UncertaintyQuantification.jl). The workflow generates nuclear data samples and runs openmc in the same slurm submission. Random seeds for SANDY are interpolated into an input file by UQ.jl.
 
 Features:
 * OpenMC configuration agnostic (can use DAGMC + libmesh)
@@ -42,9 +42,17 @@ Contributions to make it less clunky welcome.
     - `include("MonteCarlo.jl")`
     - Or submit `julia -e 'include("MonteCarlo.jl")'` in a slurm script with 1 task
     
-
+This should produce the similar figures to `example/simple_tokamak/figures`
 ## To run your example
 
 In addition to the above instructions:
 
+1. Make a new folder in `examples`, and copy `MonteCarlo.jl` and `run_model.py`
+2. Change [this directory](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L22) to the directory of your model (.xml files, .h5m files, ...)
+3. Change the list of nuclides you wish to sample [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L17)
+4. Output your tally of interest [in lines 65-79](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L65) 
+5. (Sorry) Change the length of the 'seeds' [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L31) to the length of the nuclides
+   - If `nuclides = ["Fe54", "Fe56"]`, then `seeds = [{{{   :X1   }}}, {{{   :X2   }}}]`
+   - If `len(nuclides) == 50`, then `seeds = [{{{   :X1   }}}, {{{   :X2   }}}, ... , {{{   :X50   }}}]`
+6. (Sorry) Do the same for the RandomVariables [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L6) and [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L17)
 
