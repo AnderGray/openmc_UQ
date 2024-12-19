@@ -32,7 +32,7 @@ Contributions to make it less clunky welcome.
 4. Change my HPC credentials to your HPC credentials (plus your desired partition etc) in [these lines](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L70)
    - You can optionally change the `throttle` (max samples run simultaneous)
    - You can optionally change `ntasks` (5 cores gives a simulation time ~2 mins per simulation)
-   - You can optionally set a `batchsize` (max sample submitted simultaneous) see [docs](https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc)
+   - You can optionally set a `batchsize` (max samples submitted simultaneous) see [docs](https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc)
    - You can optionally change the number of samples [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L96). Currently set to 1000 samples
      
 5. Modify the "extras" that will be injected into slurm script to run your model, in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L82)
