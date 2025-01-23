@@ -4,25 +4,26 @@ import sys
 from multiprocessing import Pool
 import openmc
 
-
-top_dir = "/home/ir-gray4/work/sims/openmc_UQ"        # Top directory of the python scripts
+# Top directory of the python scripts. Change.
+top_dir = "/home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/ALT-C/openmc_UQ"
 sys.path.insert(1, f'{top_dir}/src')
 from sample_nuclide import sample_nuclide_sandy
 from run_openmc import run_openmc
 
 
-###
-#   
-###
-nuclides =  ["Pb204", "Pb206", "Pb207", "Pb208", "Li6", "Li7", "W180", "W182", "W183", "W184"]  # Nuclide you wish to sample
+# Nuclide you wish to sample
+nuclides =  ["Pb204", "Pb206", "Pb207", "Pb208", "Li6", "Li7", "W180", "W182", "W183", "W184"]
 
-endf_folder = f"/home/ir-gray4/work/NuclearData/tendl_2019_endf/neutron"        # ENDF directory. Used to generate random data. Change.
+# ENDF directory. Used to generate random data. Change.
+endf_folder = f"/home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/nuclear_data/tendl_2019_endf/neutron"
 endf_path = str(Path(endf_folder).resolve())
 
-openmc_problem_dir = f"{top_dir}/example/openmc_geometries/Simple_tokamak"      # Directory of openmc model. Change.
+# Directory of openmc model. Change.
+openmc_problem_dir = f"{top_dir}/example/openmc_geometries/Simple_tokamak"
 openmc_xml_dir = str(Path(openmc_problem_dir).resolve())
 
-XS_LIB = "/home/ir-gray4/work/NuclearData/tendl-2019-hdf5/cross_sections.xml"   # XS library. Change. Make sure same as selected ENDF library
+# XS library. Change. Make sure same as selected ENDF library
+XS_LIB = "/home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/nuclear_data/tendl-2019-hdf5/cross_sections.xml"
 
 
 ###
