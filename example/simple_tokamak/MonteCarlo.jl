@@ -1,5 +1,46 @@
 using UncertaintyQuantification, DelimitedFiles, HDF5, StatsBase, Plots
 
+############################################################################
+## Things to un-hardcode
+## Number of random variables for nuclides
+## Workdir
+## Source directory - make it possible to run from elsewhere
+## source file
+## HPC credentials and settings
+## For loop over QOI
+## Openmc out file
+## Number of samples
+## throttle (max samples run simultaneous)
+## You can optionally set a batchsize (max samples submitted simultaneous)
+## see https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc
+
+## Histograms, output files
+
+## Quality of life improvments
+# Character limit
+# Refactor into functions
+
+# These files will be rendered through Mustach.jl and have values injected
+sourcedir = joinpath(pwd())
+sourcefile = "run_model.py"
+
+# UQ.jl will create subfolders in here to run the solver and store the results
+workdir = joinpath(pwd(), "run_dir")
+
+# HPC options
+Slurm_options = Dict(
+"account"=>"UKAEA-AP001-CPU",
+"partition"=>"icelake",
+"job-name"=>"openmc_UQ",
+"nodes"=>"1",
+"ntasks" =>"5",
+"time"=>"00:20:00"
+)
+
+# Extra commands
+command_list=["source ~/work/opt/openmc_intel_helen/profiles/openmc_profile", "source ~/.virtualenvs/openmc/bin/activate", "module load njoy/21", "export NJOY=njoy"]
+############################################################################
+
 ###
 #   Random seeds for each nuclide. Must be the same number as nuclides. The big number is just typemax(Int64)
 ###
@@ -16,16 +57,8 @@ X10 = RandomVariable(DiscreteUniform(1, 9223372036854775807), :X10)
 
 inputs = [X1, X2, X3, X4, X5, X6, X7, X8, X9, X10]
 
-sourcedir = joinpath(pwd())
-
-# These files will be rendered through Mustach.jl and have values injected
-sourcefile = "run_model.py"
-
 # Dictionary to map format Strings (Formatting.jl) to variables
 numberformats = Dict(:* => "d")
-
-# UQ.jl will create subfolders in here to run the solver and store the results
-workdir = joinpath(pwd(), "run_dir")
 
 
 # Read output files. Specify the quantities of interest and their location in the output file
@@ -61,25 +94,14 @@ end, :leakage_std)
 # Your "solver". Can be anything called from the command line
 openmc = Solver(
     "python3", # path to OpenSees binary
-    "run_model.py";
+    sourcefile;
     args="", # (optional) extra arguments passed to the solver
-)
-
-
-# HPC options
-Slurm_options = Dict(
-"account"=>"UKAEA-AP001-CPU",
-"partition"=>"icelake",
-"job-name"=>"openmc_UQ",
-"nodes"=>"1",
-"ntasks" =>"5",
-"time"=>"00:20:00"
 )
 
 slurm = SlurmInterface(
     Slurm_options;
     throttle=200,
-    extras=["source ~/work/opt/openmc_intel_helen/profiles/openmc_profile", "source ~/.virtualenvs/openmc/bin/activate", "module load njoy/21", "export NJOY=njoy"],
+    extras=command_list,
     )
 
 ext = ExternalModel(
