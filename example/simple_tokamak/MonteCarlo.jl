@@ -29,8 +29,8 @@ workdir = joinpath(pwd(), "run_dir")
 
 # HPC options
 Slurm_options = Dict(
-"account"=>"UKAEA-AP001-CPU",
-"partition"=>"icelake",
+"account"=>"UKAEA-AP002-CPU",
+"partition"=>"sapphire",
 "job-name"=>"openmc_UQ",
 "nodes"=>"1",
 "ntasks" =>"5",
@@ -38,7 +38,12 @@ Slurm_options = Dict(
 )
 
 # Extra commands
-command_list=["source ~/work/opt/openmc_intel_helen/profiles/openmc_profile", "source ~/.virtualenvs/openmc/bin/activate", "module load njoy/21", "export NJOY=njoy"]
+command_list=["source /home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/ALT-C/profiles/sapphire/openmc_profile",]
+
+# Num samples
+#num_samples = 1000
+num_samples = 100
+
 ############################################################################
 
 ###
@@ -115,7 +120,9 @@ function limitstate(df)
 end
 
 
-sim = MonteCarlo(1000)      # Change number of samples
+# Change number of samples
+sim = MonteCarlo(num_samples)
+
 
 println("Starting Monte Carlo simulation")
 @time pf, pf_std, samples = probability_of_failure(ext, limitstate, inputs, sim)       # Run UQ
