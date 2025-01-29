@@ -26,7 +26,6 @@ inputs = JSON.parsefile(input_file)
 solver_exe               = inputs["solver_exe"]
 solver_inputs            = Dict(inputs["solver_inputs"])
 solver_config            = inputs["solver_config"]
-solver_qoi_names         = Vector{String}(inputs["solver_qoi_names"])
 reliability_qoi_name     = inputs["reliability_qoi_name"]
 reliability_qoi_criteria = inputs["reliability_qoi_criteria"]
 workdir                  = inputs["work_dir"]
@@ -124,7 +123,7 @@ for i_seed in 1:num_seeds
     seed_name=string("X","$i_seed")
     rand = RandomVariable(DiscreteUniform(1, INT64MAX), Symbol(seed_name))
     push!(random_variable_list, rand)
-    seed_string=string("{{{","$seed_name","}}}")
+    seed_string=string("{{{ ","$seed_name"," }}}")
     push!(seed_string_list,seed_string)
 end
 # Add seeds to input dict
