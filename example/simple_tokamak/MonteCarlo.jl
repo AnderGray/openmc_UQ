@@ -106,7 +106,6 @@ model = ExternalModel(
 )
 ############################################################################
 # Define Limistate function for reliability analysis.
-# Here, computing Prob(TBR <= 1.05)
 function limitstate(df)
     return reduce(vcat, df[:,reliability_qoi_name]).-reliability_qoi_criteria
 end
@@ -125,7 +124,7 @@ end
 ############################################################################
 # Peform the Monte Carlo UQ
 println("Starting Monte Carlo simulation")
-@time pf, pf_std, samples = probability_of_failure(model, limitstate, input_seeds, sampling)
+@time pf, pf_std, samples = probability_of_failure(model, limitstate, random_variable_list, sampling)
 println("Monte Carlo simulation complete")
 ############################################################################
 # Extract reliability results
