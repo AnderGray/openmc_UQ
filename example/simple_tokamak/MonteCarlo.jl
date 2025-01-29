@@ -19,10 +19,17 @@ using UncertaintyQuantification, DelimitedFiles, HDF5, StatsBase, Plots, JSON
 # Character limit
 # Refactor into functions
 ############################################################################
+# Process command line arguments
+input_file=""
+try
+    global input_file = ARGS[1]
+catch e
+    error("Please provide an input JSON file. Usage:\n","julia ",PROGRAM_FILE, " input.json")
+end
+#############################################################################
 # Get inputs from json file
-# TODO make this an argument
-filename="uq_inputs.json"
-inputs = JSON.parsefile(filename)
+println("Reading inputs from: ", input_file)
+inputs = JSON.parsefile(input_file)
 
 # Set local variables
 solver_exe               = inputs["solver_exe"]
@@ -84,7 +91,6 @@ num_qoi = length(solver_qoi_names)
 extractor_list=Vector{Extractor}()
 for index = 1:num_qoi
     qoi = solver_qoi_names[index]
-    println(index, " ", qoi)
     qoi_extractor = openmc_extractor(index,solver_output,qoi)
     push!(extractor_list, qoi_extractor)
 end
@@ -157,6 +163,7 @@ println("Probability of failure standard deviation: $pf_std")
 println("QOI mean: $qoi_mean")
 println("QOI std: $qoi_std")
 println("QOI 95% confidence interval: [$lower_quantile, $upper_quantile]")
+println("******************************************************************")
 ############################################################################
 # Write summary to text file
 println("Writing summary to $summary_file")
@@ -165,7 +172,7 @@ write(file, "pf = $pf \n pf_std = $pf_std")
 close(file)
 ############################################################################
 # Save results to HDF5
-println("Writing results")
+println("Writing results to $results_file")
 input_slice = ["$((Symbol(:X,i)))" for i = 1:length(input_seeds)]
 fid = h5open(results_file, "w")
 fid["pf"] = pf
@@ -178,7 +185,7 @@ fid["input_seeds"] = Matrix(samples[!,input_slice])
 close(fid)
 #############################################################################
 # Generate Histograms
-println("Writing Histograms")
+println("Writing histograms")
 for index = 1:num_qoi
     qoi = solver_qoi_names[index]
     histogram(samples[:,qoi], normalize=:pdf, label= "tendl2019")
@@ -187,4 +194,6 @@ for index = 1:num_qoi
     savefig(output_name)
     println("Wrote to $output_name")
 end
+println("******************************************************************")
+println("Done.")
 ############################################################################
