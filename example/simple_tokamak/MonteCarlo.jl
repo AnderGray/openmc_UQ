@@ -25,33 +25,42 @@ filename="uq_inputs.json"
 inputs = JSON.parsefile(filename)
 
 # Set local variables
-solver_exe       = inputs["solver_exe"]
-solver_input     = inputs["solver_input"]
-solver_args      = inputs["solver_args"]
-solver_output    = inputs["solver_output"]
-solver_dir       = inputs["solver_dir"]
-solver_qoi_names = Vector{String}(inputs["solver_qoi_names"])
-workdir          = inputs["work_dir"]
-num_samples      = Int(inputs["num_samples"])
-throttle         = Int(inputs["throttle"])
-command_list     = Vector{String}(inputs["command_list"])
-slurm_options    = Dict{String,String}(inputs["slurm_options"])
+solver_exe               = inputs["solver_exe"]
+solver_input             = inputs["solver_input"]
+solver_args              = inputs["solver_args"]
+solver_output            = inputs["solver_output"]
+solver_dir               = inputs["solver_dir"]
+solver_qoi_names         = Vector{String}(inputs["solver_qoi_names"])
+reliability_qoi_name     = inputs["reliability_qoi_name"]
+reliability_qoi_criteria = inputs["reliability_qoi_criteria"]
+workdir                  = inputs["work_dir"]
+num_samples              = Int(inputs["num_samples"])
+throttle                 = Int(inputs["throttle"])
+command_list             = Vector{String}(inputs["command_list"])
+slurm_options            = Dict{String,String}(inputs["slurm_options"])
+summary_file             = inputs["summary_file"]
+results_file             = inputs["results_file"]
 
 # Logging
-println("************************************************")
+println("******************************************************************")
 println("Run configuration:")
-println("************************************************")
-println("Solver executable = $solver_exe")
-println("Solver input      = $solver_input")
-println("Solver args       = $solver_args")
-println("Solver output     = $solver_output")
-println("Solver directory  = $solver_dir")
-println("Work directory    = $workdir")
-println("Num samples       = $num_samples")
-println("Throttle          = $throttle")
-println("Commands          = $command_list")
-println("Slurm options     = $slurm_options")
-println("************************************************")
+println("******************************************************************")
+println("Solver executable    = $solver_exe")
+println("Solver input         = $solver_input")
+println("Solver args          = $solver_args")
+println("Solver output        = $solver_output")
+println("Solver directory     = $solver_dir")
+println("Solver QOI names     = $solver_qoi_names")
+println("Reliability QOI      = $reliability_qoi_name")
+println("Reliability criteria = $reliability_qoi_criteria")
+println("Work directory       = $workdir")
+println("Num samples          = $num_samples")
+println("Throttle             = $throttle")
+println("Commands             = $command_list")
+println("Slurm options        = $slurm_options")
+println("Summary file         = $summary_file")
+println("Results file         = $results_file")
+println("******************************************************************")
 
 ############################################################################
 # Specify the quantities of interest and their location in the output file
@@ -72,44 +81,13 @@ end
 
 # NB Julia array indexing starts at 1
 num_qoi = length(solver_qoi_names)
-test_extractor_list=Vector{Extractor}()
+extractor_list=Vector{Extractor}()
 for index = 1:num_qoi
     qoi = solver_qoi_names[index]
     println(index, " ", qoi)
     qoi_extractor = openmc_extractor(index,solver_output,qoi)
-    push!(test_extractor_list, qoi_extractor)
+    push!(extractor_list, qoi_extractor)
 end
-
-TBR = Extractor(base -> begin
-    file = joinpath(base, solver_output)
-    data = readdlm(file, ' ')
-
-    return data[1]
-end, :TBR)
-
-TBR_std = Extractor(base -> begin
-    file = joinpath(base, solver_output)
-    data = readdlm(file, ' ')
-
-    return data[2]
-end, :TBR_std)
-
-leakage = Extractor(base -> begin
-    file = joinpath(base, solver_output)
-    data = readdlm(file, ' ')
-
-    return data[3]
-end, :leakage)
-
-leakage_std = Extractor(base -> begin
-    file = joinpath(base, solver_output)
-    data = readdlm(file, ' ')
-
-    return data[4]
-end, :leakage_std)
-
-extractor_list =  [leakage, leakage_std, TBR, TBR_std]
-append!(extractor_list, test_extractor_list)
 
 ############################################################################
 # Define the "solver".
@@ -133,7 +111,7 @@ model = ExternalModel(
 # Define Limistate function for reliability analysis.
 # Here, computing Prob(TBR <= 1.05)
 function limitstate(df)
-    return  reduce(vcat, df.TBR) .- 1.05
+    return reduce(vcat, df[:,reliability_qoi_name]).-reliability_qoi_criteria
 end
 ############################################################################
 # Define sampling method (Monte Carlo)
@@ -162,48 +140,51 @@ println("Starting Monte Carlo simulation")
 println("Monte Carlo simulation complete")
 
 ############################################################################
-# Logging Summary data
-println("Probability of failure MC: $pf")
-println("pf_std: $pf_std")
-# Print stats
-TBR = samples.TBR #hide
-TBR_mean = mean(TBR) #hide
-TBR_std  = std(TBR) #hide
-lower_quantile = quantile(TBR, 0.025) #hide
-upper_quantile = quantile(TBR, 0.975) #hide
-println("TBR mean: $TBR_mean, TBR std: $TBR_std, TBR 95%: [$lower_quantile, $upper_quantile]") #hide
+# Extract reliability results
+qoi_results = samples[:,reliability_qoi_name]
+qoi_mean = mean(qoi_results)
+qoi_std  = std(qoi_results)
+lower_quantile = quantile(qoi_results, 0.025)
+upper_quantile = quantile(qoi_results, 0.975)
 
-println(names(samples))
+############################################################################
+# Logging Summary data
+println("******************************************************************")
+println("Summary:")
+println("******************************************************************")
+println("Probability of failure: $pf")
+println("Probability of failure standard deviation: $pf_std")
+println("QOI mean: $qoi_mean")
+println("QOI std: $qoi_std")
+println("QOI 95% confidence interval: [$lower_quantile, $upper_quantile]")
 ############################################################################
 # Write summary to text file
-println("Writing summary")
-summary_file_name = "probability_of_failure_MC.txt"
-file = open(summary_file_name, "w")
+println("Writing summary to $summary_file")
+file = open(summary_file, "w")
 write(file, "pf = $pf \n pf_std = $pf_std")
 close(file)
-
 ############################################################################
 # Save results to HDF5
 println("Writing results")
-results_file = "result_mc"
 input_slice = ["$((Symbol(:X,i)))" for i = 1:length(input_seeds)]
 fid = h5open(results_file, "w")
 fid["pf"] = pf
 fid["pf_std"] = pf_std
-fid["TBR"] = samples.TBR
-fid["leakage"] = samples.leakage
+for index = 1:num_qoi
+    qoi = solver_qoi_names[index]
+    fid[qoi] = samples[:,qoi]
+end
 fid["input_seeds"] = Matrix(samples[!,input_slice])
 close(fid)
-
 #############################################################################
 # Generate Histograms
 println("Writing Histograms")
-histogram(samples.TBR, normalize=:pdf, label= "tendl2019")
-xlabel!("TBR")
-savefig("TBR_UQ.pdf")
-
-histogram(samples.leakage, normalize=:pdf, label= "tendl2019")
-xlabel!("leakage")
-savefig("leakage_UQ.pdf")
-println("Writing Histograms")
+for index = 1:num_qoi
+    qoi = solver_qoi_names[index]
+    histogram(samples[:,qoi], normalize=:pdf, label= "tendl2019")
+    xlabel!(qoi)
+    output_name=string(qoi,"_UQ.pdf")
+    savefig(output_name)
+    println("Wrote to $output_name")
+end
 ############################################################################

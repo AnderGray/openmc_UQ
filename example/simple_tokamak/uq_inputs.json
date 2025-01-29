@@ -4,7 +4,9 @@
     "solver_args": "",
     "solver_output": "openmc.out",
     "solver_dir": "/home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/ALT-C/openmc_UQ/example/simple_tokamak",
-    "solver_qoi_names" : ["TBRtest"],
+    "solver_qoi_names" : ["TBR", "TBR_std", "leakage", "leakage_std"],
+    "reliability_qoi_name": "TBR",
+    "reliability_qoi_criteria": 1.05,
     "work_dir": "/home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/ALT-C/openmc_UQ/example/simple_tokamak/run_dir",
     "num_samples": 100,
     "throttle": 200,
@@ -16,5 +18,7 @@
 	"nodes": "1",
 	"ntasks": "5",
 	"time":"00:20:00"
-    }
+    },
+    "summary_file": "summary.txt",
+    "results_file": "results.h5"
 }
