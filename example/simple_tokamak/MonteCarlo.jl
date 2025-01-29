@@ -66,7 +66,7 @@ function openmc_extractor(index,output_file, qoi_name)
         file = joinpath(base, output_file)
         data = readdlm(file, ' ')
 	return data[index]
-    end,:qoi_name)
+    end,Symbol(qoi_name))
     return extractor
 end
 
