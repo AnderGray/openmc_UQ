@@ -3,17 +3,8 @@ using UncertaintyQuantification, DelimitedFiles, HDF5, StatsBase, Plots, JSON
 ############################################################################
 ## Things to un-hardcode
 ## Number of random variables for nuclides
-## Workdir
-## Source directory - make it possible to run from elsewhere
-## source file
-## HPC credentials and settings
-## For loop over QOI
-## Openmc out file
-## Number of samples
-## throttle (max samples run simultaneous)
 ## # You can optionally set a batchsize (max samples submitted simultaneous)
 ## see https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc
-## Histograms, output files
 ############################################################################
 ## Quality of life improvments
 # Character limit
@@ -41,6 +32,7 @@ solver_qoi_names         = Vector{String}(inputs["solver_qoi_names"])
 reliability_qoi_name     = inputs["reliability_qoi_name"]
 reliability_qoi_criteria = inputs["reliability_qoi_criteria"]
 workdir                  = inputs["work_dir"]
+num_seeds                = Int(inputs["num_seeds"])
 num_samples              = Int(inputs["num_samples"])
 throttle                 = Int(inputs["throttle"])
 command_list             = Vector{String}(inputs["command_list"])
@@ -61,6 +53,7 @@ println("Solver QOI names     = $solver_qoi_names")
 println("Reliability QOI      = $reliability_qoi_name")
 println("Reliability criteria = $reliability_qoi_criteria")
 println("Work directory       = $workdir")
+println("Num seeds            = $num_seeds")
 println("Num samples          = $num_samples")
 println("Throttle             = $throttle")
 println("Commands             = $command_list")
@@ -68,7 +61,6 @@ println("Slurm options        = $slurm_options")
 println("Summary file         = $summary_file")
 println("Results file         = $results_file")
 println("******************************************************************")
-
 ############################################################################
 # Specify the quantities of interest and their location in the output file
 
@@ -94,7 +86,6 @@ for index = 1:num_qoi
     qoi_extractor = openmc_extractor(index,solver_output,qoi)
     push!(extractor_list, qoi_extractor)
 end
-
 ############################################################################
 # Define the "solver".
 # solver_exe can be anything called from the command line
@@ -123,28 +114,19 @@ end
 # Define sampling method (Monte Carlo)
 sampling = MonteCarlo(num_samples)
 ############################################################################
-#
-# Random seeds for each nuclide. Must be the same number as nuclides.
-# The big number is just typemax(Int64)
-#
-X1 = RandomVariable(DiscreteUniform(1, 9223372036854775807), :X1)
-X2 = RandomVariable(DiscreteUniform(1, 9223372036854775807), :X2)
-X3 = RandomVariable(DiscreteUniform(1, 9223372036854775807), :X3)
-X4 = RandomVariable(DiscreteUniform(1, 9223372036854775807), :X4)
-X5 = RandomVariable(DiscreteUniform(1, 9223372036854775807), :X5)
-X6 = RandomVariable(DiscreteUniform(1, 9223372036854775807), :X6)
-X7 = RandomVariable(DiscreteUniform(1, 9223372036854775807), :X7)
-X8 = RandomVariable(DiscreteUniform(1, 9223372036854775807), :X8)
-X9 = RandomVariable(DiscreteUniform(1, 9223372036854775807), :X9)
-X10 = RandomVariable(DiscreteUniform(1, 9223372036854775807), :X10)
-
-input_seeds = [X1, X2, X3, X4, X5, X6, X7, X8, X9, X10]
+# Define random variables corresponding to seeds for each nuclide.
+INT64MAX=typemax(Int64)
+random_variable_list=Vector{RandomVariable}()
+for i_seed in 1:num_seeds
+    seed_name=string("X","$i_seed")
+    rand = RandomVariable(DiscreteUniform(1, INT64MAX), Symbol(seed_name))
+    push!(random_variable_list, rand)
+end
 ############################################################################
 # Peform the Monte Carlo UQ
 println("Starting Monte Carlo simulation")
 @time pf, pf_std, samples = probability_of_failure(model, limitstate, input_seeds, sampling)
 println("Monte Carlo simulation complete")
-
 ############################################################################
 # Extract reliability results
 qoi_results = samples[:,reliability_qoi_name]
@@ -152,7 +134,6 @@ qoi_mean = mean(qoi_results)
 qoi_std  = std(qoi_results)
 lower_quantile = quantile(qoi_results, 0.025)
 upper_quantile = quantile(qoi_results, 0.975)
-
 ############################################################################
 # Logging Summary data
 println("******************************************************************")
@@ -173,7 +154,7 @@ close(file)
 ############################################################################
 # Save results to HDF5
 println("Writing results to $results_file")
-input_slice = ["$((Symbol(:X,i)))" for i = 1:length(input_seeds)]
+input_slice = ["$((Symbol(:X,i)))" for i = 1:length(random_variable_list)]
 fid = h5open(results_file, "w")
 fid["pf"] = pf
 fid["pf_std"] = pf_std
@@ -195,5 +176,4 @@ for index = 1:num_qoi
     println("Wrote to $output_name")
 end
 println("******************************************************************")
-println("Done.")
 ############################################################################
