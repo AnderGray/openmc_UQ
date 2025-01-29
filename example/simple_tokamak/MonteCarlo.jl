@@ -123,7 +123,7 @@ for i_seed in 1:num_seeds
     seed_name=string("X","$i_seed")
     rand = RandomVariable(DiscreteUniform(1, INT64MAX), Symbol(seed_name))
     push!(random_variable_list, rand)
-    seed_string=string("{{{ ","$seed_name"," }}}")
+    seed_string=string("{{{ :","$seed_name"," }}}")
     push!(seed_string_list,seed_string)
 end
 # Add seeds to input dict
