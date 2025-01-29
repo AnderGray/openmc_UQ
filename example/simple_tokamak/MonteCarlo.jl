@@ -24,15 +24,12 @@ inputs = JSON.parsefile(input_file)
 
 # Set local variables
 solver_exe               = inputs["solver_exe"]
-solver_input             = inputs["solver_input"]
-solver_args              = inputs["solver_args"]
-solver_output            = inputs["solver_output"]
-solver_dir               = inputs["solver_dir"]
+solver_inputs            = Dict(inputs["solver_inputs"])
+solver_config            = inputs["solver_config"]
 solver_qoi_names         = Vector{String}(inputs["solver_qoi_names"])
 reliability_qoi_name     = inputs["reliability_qoi_name"]
 reliability_qoi_criteria = inputs["reliability_qoi_criteria"]
 workdir                  = inputs["work_dir"]
-num_seeds                = Int(inputs["num_seeds"])
 num_samples              = Int(inputs["num_samples"])
 throttle                 = Int(inputs["throttle"])
 command_list             = Vector{String}(inputs["command_list"])
@@ -45,15 +42,11 @@ println("******************************************************************")
 println("Run configuration:")
 println("******************************************************************")
 println("Solver executable    = $solver_exe")
-println("Solver input         = $solver_input")
-println("Solver args          = $solver_args")
-println("Solver output        = $solver_output")
-println("Solver directory     = $solver_dir")
-println("Solver QOI names     = $solver_qoi_names")
+println("Solver config        = $solver_config")
+println("Solver inputs        = $solver_inputs")
 println("Reliability QOI      = $reliability_qoi_name")
 println("Reliability criteria = $reliability_qoi_criteria")
 println("Work directory       = $workdir")
-println("Num seeds            = $num_seeds")
 println("Num samples          = $num_samples")
 println("Throttle             = $throttle")
 println("Commands             = $command_list")
@@ -61,6 +54,7 @@ println("Slurm options        = $slurm_options")
 println("Summary file         = $summary_file")
 println("Results file         = $results_file")
 println("******************************************************************")
+
 ############################################################################
 # Specify the quantities of interest and their location in the output file
 
@@ -78,19 +72,25 @@ function openmc_extractor(index,output_file, qoi_name)
     return extractor
 end
 
-# NB Julia array indexing starts at 1
-num_qoi = length(solver_qoi_names)
+# Loop over scores
+solver_output = solver_inputs["output"]
+scores = solver_inputs["scores"]
+num_scores = length(scores)
 extractor_list=Vector{Extractor}()
-for index = 1:num_qoi
-    qoi = solver_qoi_names[index]
-    qoi_extractor = openmc_extractor(index,solver_output,qoi)
+for i_score = 1:num_scores
+    qoi = scores[i_score]
+    data_index = 2*i_score
+    qoi_extractor = openmc_extractor(data_index,solver_output,qoi)
+    push!(extractor_list, qoi_extractor)
+
+    qoi_std = string(qoi,"_std")
+    std_index = 2*i_score+1
+    qoi_extractor = openmc_extractor(std_index,solver_output,qoi_std)
     push!(extractor_list, qoi_extractor)
 end
 ############################################################################
 # Define the "solver".
-# solver_exe can be anything called from the command line
-# solver_args: (optional) extra arguments passed to the solver
-solver = Solver(solver_exe, solver_input; args=solver_args)
+solver = Solver(solver_exe, solver_config; args="")
 ############################################################################
 # Define the job scheduler
 slurm = SlurmInterface(slurm_options; throttle=throttle,extras=command_list)
@@ -101,8 +101,9 @@ numberformats = Dict(:* => "d")
 ############################################################################
 # Put everything together and define (external) model
 # workdir: create subfolders in here to run the solver and store the results
+source_dir = joinpath(pwd())
 model = ExternalModel(
-    solver_dir, solver_input, extractor_list, solver; workdir=workdir, formats=numberformats, scheduler = slurm
+    source_dir, solver_config, extractor_list, solver; workdir=workdir, formats=numberformats, scheduler = slurm
 )
 ############################################################################
 # Define Limistate function for reliability analysis.
@@ -115,11 +116,23 @@ sampling = MonteCarlo(num_samples)
 ############################################################################
 # Define random variables corresponding to seeds for each nuclide.
 INT64MAX=typemax(Int64)
+nuclides=solver_inputs["nuclides"]
+num_seeds=length(nuclides)
 random_variable_list=Vector{RandomVariable}()
+seed_string_list=Vector{String}()
 for i_seed in 1:num_seeds
     seed_name=string("X","$i_seed")
     rand = RandomVariable(DiscreteUniform(1, INT64MAX), Symbol(seed_name))
     push!(random_variable_list, rand)
+    seed_string=string("{{{","$seed_name","}}}")
+    push!(seed_string_list,seed_string)
+end
+# Add seeds to input dict
+solver_inputs["seeds"] = seed_string_list
+############################################################################
+# Write all inputs to a template config file
+open(solver_config,"w") do f
+  JSON.print(f, solver_inputs, 4)
 end
 ############################################################################
 # Peform the Monte Carlo UQ
@@ -157,17 +170,19 @@ input_slice = ["$((Symbol(:X,i)))" for i = 1:length(random_variable_list)]
 fid = h5open(results_file, "w")
 fid["pf"] = pf
 fid["pf_std"] = pf_std
-for index = 1:num_qoi
-    qoi = solver_qoi_names[index]
+for index = 1:num_scores
+    qoi = scores[index]
     fid[qoi] = samples[:,qoi]
+    qoi_std = string(qoi,"_std")
+    fid[qoi_std] = samples[:,qoi_std]
 end
 fid["input_seeds"] = Matrix(samples[!,input_slice])
 close(fid)
 #############################################################################
 # Generate Histograms
 println("Writing histograms")
-for index = 1:num_qoi
-    qoi = solver_qoi_names[index]
+for index = 1:num_scores
+    qoi = scores[index]
     histogram(samples[:,qoi], normalize=:pdf, label= "tendl2019")
     xlabel!(qoi)
     output_name=string(qoi,"_UQ.pdf")

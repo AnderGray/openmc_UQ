@@ -1,10 +1,8 @@
 import os
 from pathlib import Path
 from shutil import copyfile
-from utils import replace_nuclide_tally, replace_nuclide_material
 import openmc.data
-
-
+from .utils import replace_nuclide_tally, replace_nuclide_material
 
 def run_openmc(openmc_xml_dir, random_nuclides, cross_sections_xml, threads = 1):
 

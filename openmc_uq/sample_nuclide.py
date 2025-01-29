@@ -1,8 +1,8 @@
 # %% Imports
 import os
 import openmc.data
-from utils import get_nuclide_paths
 from pathlib import Path
+from .utils import get_nuclide_paths
 
 class RandomData:
     def __init__(self, nuclide, perturbed_name, path):
