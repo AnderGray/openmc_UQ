@@ -25,16 +25,17 @@ filename="uq_inputs.json"
 inputs = JSON.parsefile(filename)
 
 # Set local variables
-solver_exe    = inputs["solver_exe"]
-solver_input  = inputs["solver_input"]
-solver_args   = inputs["solver_args"]
-solver_output = inputs["solver_output"]
-solver_dir    = inputs["solver_dir"]
-workdir       = inputs["work_dir"]
-num_samples   = Int(inputs["num_samples"])
-throttle      = Int(inputs["throttle"])
-command_list  = Vector{String}(inputs["command_list"])
-slurm_options = Dict{String,String}(inputs["slurm_options"])
+solver_exe       = inputs["solver_exe"]
+solver_input     = inputs["solver_input"]
+solver_args      = inputs["solver_args"]
+solver_output    = inputs["solver_output"]
+solver_dir       = inputs["solver_dir"]
+solver_qoi_names = Vector{String}(inputs["solver_qoi_names"])
+workdir          = inputs["work_dir"]
+num_samples      = Int(inputs["num_samples"])
+throttle         = Int(inputs["throttle"])
+command_list     = Vector{String}(inputs["command_list"])
+slurm_options    = Dict{String,String}(inputs["slurm_options"])
 
 # Logging
 println("************************************************")
@@ -54,8 +55,31 @@ println("************************************************")
 
 ############################################################################
 # Specify the quantities of interest and their location in the output file
-# An extractor is based the working directory for the current sample
-# TODO: make into a loop
+
+# Function to return an extractor
+# First argument to Extractor struct is itself an anonymous function
+## argument base is the working directory
+## function will append base with output file and extract the data
+# Second argument to Extractor is the symbol name (immutable once changed
+function openmc_extractor(index,output_file, qoi_name)
+    extractor = Extractor(base -> begin
+        file = joinpath(base, output_file)
+        data = readdlm(file, ' ')
+	return data[index]
+    end,:qoi_name)
+    return extractor
+end
+
+# NB Julia array indexing starts at 1
+num_qoi = length(solver_qoi_names)
+test_extractor_list=Vector{Extractor}()
+for index = 1:num_qoi
+    qoi = solver_qoi_names[index]
+    println(index, " ", qoi)
+    qoi_extractor = openmc_extractor(index,solver_output,qoi)
+    push!(test_extractor_list, qoi_extractor)
+end
+
 TBR = Extractor(base -> begin
     file = joinpath(base, solver_output)
     data = readdlm(file, ' ')
@@ -85,6 +109,7 @@ leakage_std = Extractor(base -> begin
 end, :leakage_std)
 
 extractor_list =  [leakage, leakage_std, TBR, TBR_std]
+append!(extractor_list, test_extractor_list)
 
 ############################################################################
 # Define the "solver".
@@ -147,6 +172,8 @@ TBR_std  = std(TBR) #hide
 lower_quantile = quantile(TBR, 0.025) #hide
 upper_quantile = quantile(TBR, 0.975) #hide
 println("TBR mean: $TBR_mean, TBR std: $TBR_std, TBR 95%: [$lower_quantile, $upper_quantile]") #hide
+
+println(names(samples))
 ############################################################################
 # Write summary to text file
 println("Writing summary")
