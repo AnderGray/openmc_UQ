@@ -48,7 +48,7 @@ with Pool(N_workers) as pool:
     random_nuc = []
     for (i, nuc) in enumerate(nuclides):
 
-        func_args = (nuc, endf_path, int(seed[i]))
+        func_args = (nuc, endf_path, int(seeds[i]))
         RN = pool.apply_async(openmc_uq.sample_nuclide_sandy, func_args)
         random_nuc.append(RN)
 
