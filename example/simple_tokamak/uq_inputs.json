@@ -3,7 +3,7 @@
     "solver_inputs": {
         "cross_section_path": "/home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/nuclear_data/tendl-2019-hdf5/cross_sections.xml",
         "endf_dir": "/home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/nuclear_data/tendl_2019_endf/neutron",
-        "openmc_xml_dir": "home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/ALT-C/openmc_UQ/example/openmc_geometries/Simple_tokamak",
+        "openmc_xml_dir": "/home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/ALT-C/openmc_UQ/example/openmc_geometries/Simple_tokamak",
         "nuclides": [
             "Pb204",
             "Pb206",
@@ -26,7 +26,7 @@
     "reliability_qoi_name": "TBR",
     "reliability_qoi_criteria": 1.05,
     "work_dir": "/home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/ALT-C/uq_results",
-    "num_samples": 100,
+    "num_samples": 1000,
     "throttle": 200,
     "command_list": ["source /home/ir-broo2/rds/rds-ukaea-ap002-mOlK9qn0PlQ/ir-broo2/ALT-C/profiles/sapphire/openmc_profile"],
     "slurm_options": {
