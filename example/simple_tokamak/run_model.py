@@ -70,9 +70,9 @@ for score in scores:
     df = tally.get_pandas_dataframe()
     mean = df['mean'].sum()
     std = df['std. dev.'].sum()
-    tally_str = "{} {}".format(mean,std)
-    result_str=results_str+tally_str
+    tally_str = "{} {} ".format(mean,std)
+    result_str=result_str+tally_str
 
 #   Store results of interest to openmc.out
 with open(output, 'w') as f:
-    f.write(results_str)
+    f.write(result_str)

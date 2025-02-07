@@ -57,16 +57,23 @@ println("******************************************************************")
 ############################################################################
 # Specify the quantities of interest and their location in the output file
 
-# Function to return an extractor
+# Convenience function to retrieve data from a whitespace delimited file
+function get_data(file,index)
+    # Load data into an array, using whitespace as delimeter
+    data = readdlm(file, ' ')
+    # Retreive the data at specified index
+    return data[index]
+end
+
+# Convenience function to return an extractor
 # First argument to Extractor struct is itself an anonymous function
 ## argument base is the working directory
 ## function will append base with output file and extract the data
-# Second argument to Extractor is the symbol name (immutable once changed
-function openmc_extractor(index,output_file, qoi_name)
+# Second argument to Extractor is the symbol name (immutable)
+function openmc_extractor(index,output_file,qoi_name)
     extractor = Extractor(base -> begin
         file = joinpath(base, output_file)
-        data = readdlm(file, ' ')
-	return data[index]
+	return get_data(file,index)
     end,Symbol(qoi_name))
     return extractor
 end
@@ -78,12 +85,14 @@ num_scores = length(scores)
 extractor_list=Vector{Extractor}()
 for i_score = 1:num_scores
     qoi = scores[i_score]
-    data_index = 2*i_score
+    # Remember, Julia doesn't use zero-indexing
+    data_index = 2*i_score-1
     qoi_extractor = openmc_extractor(data_index,solver_output,qoi)
     push!(extractor_list, qoi_extractor)
 
     qoi_std = string(qoi,"_std")
-    std_index = 2*i_score+1
+    # Remember, Julia doesn't use zero-indexing
+    std_index = 2*i_score
     qoi_extractor = openmc_extractor(std_index,solver_output,qoi_std)
     push!(extractor_list, qoi_extractor)
 end
@@ -164,27 +173,32 @@ write(file, "pf = $pf \n pf_std = $pf_std")
 close(file)
 ############################################################################
 # Save results to HDF5
+println(names(samples))
+
 println("Writing results to $results_file")
-input_slice = ["$((Symbol(:X,i)))" for i = 1:length(random_variable_list)]
 fid = h5open(results_file, "w")
 fid["pf"] = pf
 fid["pf_std"] = pf_std
 for index = 1:num_scores
-    qoi = scores[index]
-    fid[qoi] = samples[:,qoi]
-    qoi_std = string(qoi,"_std")
-    fid[qoi_std] = samples[:,qoi_std]
+    score_name = scores[index]
+    score_results = Vector{Float64}(samples[:,score_name])
+    fid[score_name] = score_results
+    score_std_name = string(score_name,"_std")
+    score_std_results = Vector{Float64}(samples[:,score_std_name])
+    fid[score_std_name] = score_std_results
 end
-fid["input_seeds"] = Matrix(samples[!,input_slice])
+
+input_slice = ["$((Symbol(:X,i)))" for i = 1:num_seeds]
+fid["seeds"] = Matrix(samples[!,input_slice])
 close(fid)
 #############################################################################
 # Generate Histograms
 println("Writing histograms")
 for index = 1:num_scores
-    qoi = scores[index]
-    histogram(samples[:,qoi], normalize=:pdf, label= "tendl2019")
-    xlabel!(qoi)
-    output_name=string(qoi,"_UQ.pdf")
+    score_name = scores[index]
+    histogram(samples[:,score_name], normalize=:pdf, label= "tendl2019")
+    xlabel!(score_name)
+    output_name=string(score_name,"_UQ.pdf")
     savefig(output_name)
     println("Wrote to $output_name")
 end
