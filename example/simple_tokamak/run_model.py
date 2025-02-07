@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 import argparse
+from glob import glob
 import json
 from multiprocessing import Pool
 import os
@@ -29,6 +30,9 @@ endf_path = inputs_dict["endf_dir"]
 # Directory of openmc model.
 openmc_xml_dir = inputs_dict["openmc_xml_dir"]
 
+# Local directory name to run in
+run_dir = inputs_dict["run_dir"]
+
 # XS library.
 XS_LIB = inputs_dict["cross_section_path"]
 
@@ -38,13 +42,15 @@ scores = inputs_dict["scores"]
 # File to save to
 output = inputs_dict["output"]
 
+# Number threads / workers / cores
+n_cores = int(inputs_dict["n_cores"])
+
 # Generate random HDF5 file of "nuclides".
 # Parallel using simple multiprocessing
-N_workers = int(os.getenv('SLURM_NTASKS'))
-print(f"Sampling sandy with N_workers={N_workers}")
+print(f"Sampling sandy with n_cores={n_cores}")
 
 print("Beginning NJOY processing")
-with Pool(N_workers) as pool:
+with Pool(n_cores) as pool:
     random_nuc = []
     for (i, nuc) in enumerate(nuclides):
 
@@ -59,10 +65,22 @@ with Pool(N_workers) as pool:
         random_nuc[i] = r.get()
 
 #  Run openmc with random files
-openmc_uq.run_openmc(openmc_xml_dir, random_nuc,  cross_sections_xml=XS_LIB, threads = N_workers)
+openmc_uq.run_openmc(openmc_xml_dir, random_nuc, cross_sections_xml=XS_LIB, threads=n_cores,run_dir=run_dir)
 
-# Gather results
-sp = openmc.StatePoint("openmc_sim/statepoint.10.h5")
+# Lift tallies from statepoint file
+n_max_batches=0
+template=run_dir+'/statepoint.*.h5'
+files=glob(template)
+file_to_open=""
+for filename in files:
+    stem=filename.replace('.h5','')
+    n_batches=int(stem.replace('statepoint.',''))
+    if n_batches > n_max_batches:
+        n_max_batches=n_batches
+        file_to_open=filename
+
+print("Opening statepoint file: ",file_to_open)
+sp = openmc.StatePoint(file_to_open)
 
 result_str=""
 for score in scores:
