@@ -69,12 +69,13 @@ openmc_uq.run_openmc(openmc_xml_dir, random_nuc, cross_sections_xml=XS_LIB, thre
 
 # Lift tallies from statepoint file
 n_max_batches=0
-template=run_dir+'/statepoint.*.h5'
+stem=run_dir+'/statepoint.'
+template=stem+'*.h5'
 files=glob(template)
 file_to_open=""
 for filename in files:
-    stem=filename.replace('.h5','')
-    n_batches=int(stem.replace('statepoint.',''))
+    root=filename.replace('.h5','')
+    n_batches=int(root.replace(stem,''))
     if n_batches > n_max_batches:
         n_max_batches=n_batches
         file_to_open=filename
