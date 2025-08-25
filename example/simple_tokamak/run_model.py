@@ -44,6 +44,7 @@ output = inputs_dict["output"]
 
 # Number threads / workers / cores
 n_cores = int(inputs_dict["n_cores"])
+n_mpi = int(inputs_dict["n_mpi"])
 
 # Generate random HDF5 file of "nuclides".
 # Parallel using simple multiprocessing
@@ -65,7 +66,7 @@ with Pool(n_cores) as pool:
         random_nuc[i] = r.get()
 
 #  Run openmc with random files
-openmc_uq.run_openmc(openmc_xml_dir, random_nuc, cross_sections_xml=XS_LIB, threads=n_cores,run_dir=run_dir)
+openmc_uq.run_openmc(openmc_xml_dir, random_nuc, cross_sections_xml=XS_LIB, threads=n_cores, n_mpi = n_mpi,run_dir=run_dir)
 
 # Lift tallies from statepoint file
 n_max_batches=0

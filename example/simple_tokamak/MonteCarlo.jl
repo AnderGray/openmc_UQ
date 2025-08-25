@@ -140,7 +140,9 @@ solver_inputs["seeds"] = seed_string_list
 ############################################################################
 # Tell solver how much local resource to use
 ntasks = parse(Int,slurm_options["ntasks"])
+n_mpi = parse(Int,slurm_options["nodes"])
 solver_inputs["n_cores"] = ntasks
+solver_inputs["n_mpi"] = n_mpi
 ############################################################################
 # Write all inputs to a template config file
 open(solver_config,"w") do f

@@ -5,7 +5,7 @@ import openmc.data
 from .utils import replace_nuclide_tally, replace_nuclide_material
 
 def run_openmc(openmc_xml_dir, random_nuclides, cross_sections_xml,
-               threads = 1,
+               threads = 1, n_mpi = 1,
                run_dir="openmc_sim"):
 
     # ==============================================================================
@@ -61,7 +61,7 @@ def run_openmc(openmc_xml_dir, random_nuclides, cross_sections_xml,
     materials.export_to_xml()
 
     #output = openmc.run(threads = threads)
-    openmc_command = f"mpirun -np 1 -ppn 1 --bind-to none openmc -s {threads}"
+    openmc_command = f"mpirun -np {n_mpi} -ppn 1 --bind-to none openmc -s {threads}"
     os.system(openmc_command)
 
     os.chdir(working_dir)
