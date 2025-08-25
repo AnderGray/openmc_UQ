@@ -23,7 +23,9 @@ Contributions to make it less clunky are welcome.
    - `julia -e 'using Pkg; Pkg.add("StatsBase")'`
    - `julia -e 'using Pkg; Pkg.add("Plots")'`
 8. Download nuclear data (ENDF and HDF5)
- 
+8. Install openmc_uq python package:
+   - `pip install .`
+
 ## To run my example
 
 1. Modify your top path in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L8) (the top directory of this repo)
@@ -34,14 +36,14 @@ Contributions to make it less clunky are welcome.
    - You can optionally change `ntasks` (5 cores gives a simulation time ~2 mins per simulation)
    - You can optionally set a `batchsize` (max samples submitted simultaneous) see [docs](https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc)
    - You can optionally change the number of samples [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L96). Currently set to 1000 samples
-     
+
 5. Modify the "extras" that will be injected into slurm script to run your model, in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L82)
     - For me, this was loading openmc, activating my python environment, and loading NJOY
 6. Run it! From inside `examples/simple_tokamak`
     - `julia`
     - `include("MonteCarlo.jl")`
     - Or submit `julia -e 'include("MonteCarlo.jl")'` in a slurm script with 1 task
-    
+
 This should produce the similar figures to `example/simple_tokamak/figures`. If you're not interested in computing a failure probability, the limitstate function can be ignored. You make also simulate samples without using `probability_of_failure` function. This can be done by
 
 ```julia
@@ -60,15 +62,15 @@ In addition to the above instructions:
 4. Output your tally of interest [in lines 65-79](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L65)
 5. Change the extractor to your tally of interest [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L33)
    - Currently only scalar tallies can be "extracted", but you can generate samples of any tally (e.g. spectra, meshes), and extract them yourself.
-     
+
 6. Change the `nodes` and `ntasks` to your desired resources, [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L74)
    - If you increase the `nodes` to more than 1, you must match it [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/src/run_openmc.py#L64) 😅
-       
+
 8. 😅 Change the length of the 'seeds' [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L31) to the length of the nuclides
    - If `nuclides = ["Fe54", "Fe56"]`, then `seeds = [{{{   :X1   }}}, {{{   :X2   }}}]`
    - If `len(nuclides) == 50`, then `seeds = [{{{   :X1   }}}, {{{   :X2   }}}, ... , {{{   :X50   }}}]`
 9. 😅 Do the same for the RandomVariables [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L6) and [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L17)
-    
+
 10. Run it!
 
 The "😅" are locations where the workflow can be clearly improved (among other places)

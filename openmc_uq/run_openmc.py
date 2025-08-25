@@ -1,12 +1,12 @@
 import os
 from pathlib import Path
 from shutil import copyfile
-from utils import replace_nuclide_tally, replace_nuclide_material
 import openmc.data
+from .utils import replace_nuclide_tally, replace_nuclide_material
 
-
-
-def run_openmc(openmc_xml_dir, random_nuclides, cross_sections_xml, threads = 1):
+def run_openmc(openmc_xml_dir, random_nuclides, cross_sections_xml,
+               threads = 1, n_mpi = 1,
+               run_dir="openmc_sim"):
 
     # ==============================================================================
     # Make openmc sim directory
@@ -17,7 +17,7 @@ def run_openmc(openmc_xml_dir, random_nuclides, cross_sections_xml, threads = 1)
     print(" *************** Making sim folder ***************")
     print()
 
-    out_dir = Path(f"openmc_sim").resolve()
+    out_dir = Path(run_dir).resolve()
     out_dir.mkdir(exist_ok=True)
 
     openmc_xml_dir = Path(openmc_xml_dir).resolve()
@@ -61,7 +61,7 @@ def run_openmc(openmc_xml_dir, random_nuclides, cross_sections_xml, threads = 1)
     materials.export_to_xml()
 
     #output = openmc.run(threads = threads)
-    openmc_command = f"mpirun -np 1 -ppn 1 --bind-to none openmc -s {threads}"
+    openmc_command = f"mpirun -np {n_mpi} -ppn 1 --bind-to none openmc -s {threads}"
     os.system(openmc_command)
 
     os.chdir(working_dir)
