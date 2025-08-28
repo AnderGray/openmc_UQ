@@ -1,0 +1,47 @@
+{
+    "solver_exe": "/home/ir-gray4/work/sims/openmc_UQ/example/simple_tokamak_subset/run_model.py",
+    "solver_inputs": {
+        "cross_section_path": "/home/ir-gray4/work/NuclearData/tendl-2019-hdf5/cross_sections.xml",
+        "endf_dir": "/home/ir-gray4/work/NuclearData/tendl_2019_endf/neutron",
+        "pre_processed_dir": "/home/ir-gray4/work/NuclearData/tendl_2019_endf/neutron/processed",
+        "openmc_xml_dir": "/home/ir-gray4/work/sims/openmc_UQ/example/openmc_geometries/Simple_tokamak",
+	    "run_dir": "openmc_sim",
+        "nuclides": [
+            "Pb204",
+            "Pb206",
+            "Pb207",
+            "Pb208",
+            "Li6",
+            "Li7",
+            "W180",
+            "W182",
+            "W183",
+            "W184"
+        ],
+	"scores": [
+	    "TBR",
+	    "leakage"
+	],
+	"output": "openmc.out",
+    "sample_file": "samples.dat"
+    },
+    "solver_config": "config.json",
+    "reliability_qoi_name": "TBR",
+    "reliability_qoi_criteria": 1.05,
+    "work_dir": "/home/ir-gray4/work/sims/openmc_UQ/uq_results",
+    "num_samples": 100,
+    "throttle": 200,
+    "command_list": ["source /home/ir-gray4/work/opt/openmc_intel_helen/profiles/openmc_profile", "source ~/.virtualenvs/openmc/bin/activate", "module load njoy/21", "export NJOY=njoy"],
+    "slurm_options": {
+        "account": "UKAEA-AP001-CPU",
+        "partition": "ukaea-spr",
+        "job-name": "openmc_UQ",
+        "nodes": "1",
+        "ntasks": "5",
+        "time":"00:20:00"
+    },
+    "dimension_reduction" : false,
+    "summary_file": "summary.txt",
+    "results_file": "results.h5"
+}
+
