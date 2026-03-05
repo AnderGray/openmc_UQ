@@ -40,7 +40,7 @@
         "ntasks": "5",
         "time":"00:20:00"
     },
-    "dimension_reduction" : false,
+    "dimension_reduction" : true,
     "summary_file": "summary.txt",
     "results_file": "results.h5"
 }
