@@ -84,4 +84,4 @@ SLURM_NTASKS=10 #(e.g.)
 python3 setup.py uq_inputs.json
 ```
 
-### Note: currently only MT33 (cross section) covariances are captured by this.
+### Note: currently only MF33 (cross section) covariances are captured by this.
