@@ -46,6 +46,7 @@ Things to consider while configuring the input file:
 - Modify the HPC credentials
    - You can optionally change the `throttle` (max samples run simultaneous)
    - You can optionally change `ntasks` (5 cores gives a simulation time ~2 mins per simulation)
+   - You can optionally change `nodes` for larger simulations
    - You can optionally set a `batchsize` (max samples submitted simultaneous) see [docs](https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc)
    - You can optionally change the number of samples. Currently set to 100 samples
 - Modify the `command list`, to what needs to be loaded to run your OpenMC model
@@ -59,7 +60,7 @@ evaluate!(ext, samples)
 ```
 Where `inputs` and `ext` are the inputs and external model as defined in `MonteCarlo.jl`.
 
-## To run a more advanced sampling strategy
+## To run a more advanced sampling strategy (variance reduction)
 
 See `example/simple_tokamak_subset` for example
 
@@ -67,18 +68,19 @@ See `example/simple_tokamak_subset` for example
 
 2. Setup the simulation `python3 setup.py uq_inputs.json`
 
-3. Run it! `julia SubsetSim.jl uq_inputs.json`
-- Or submit `julia SubsetSim.jl uq_inputs.json` in a slurm script with a few cpus
+3. Run it! `julia LatinHypercube.jl uq_inputs.json`
+- Or submit `julia LatinHypercube.jl uq_inputs.json` in a slurm script with a few cpus
 
+Other variance reduction, such as Subset Simulation are available, for evaluating design reliability, such as P(TBR < 1.05).
 
 ### What does `setup.py` do? 
 
 It performs an SVD of all the covariances available within your specified ENDF library, stores the matrices, and computes the number of components to capture 99% of the variance of each nuclide. 
 
-For many nuclides, it is quite expensive to compute SVDs, but this can also be parallelised. In a slurm script:
+For most nuclides it is quite expensive to compute SVDs, so parallelism is also provided. In a slurm script:
 
 ```shell
-SLURM_NTASKS=10
+SLURM_NTASKS=10 #(e.g.)
 python3 setup.py uq_inputs.json
 ```
 
