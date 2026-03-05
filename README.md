@@ -1,12 +1,14 @@
 # openmc_UQ
-A fairly clunky workflow for running nuclear data Monte Carlo UQ with OpenMC. The workflow wraps the [SANDY](https://github.com/luca-fiorito-11/sandy) and [OpenMC](https://github.com/openmc-dev/openmc) in [UncertaintyQuantification.jl](https://github.com/FriesischScott/UncertaintyQuantification.jl). The workflow generates nuclear data samples and runs openmc in the same slurm submission. Random seeds for SANDY are interpolated into an input file by UQ.jl.
+Workflow for running nuclear data Monte Carlo UQ with OpenMC. The workflow wraps the [SANDY](https://github.com/luca-fiorito-11/sandy) and [OpenMC](https://github.com/openmc-dev/openmc) in [UncertaintyQuantification.jl](https://github.com/FriesischScott/UncertaintyQuantification.jl). The workflow generates nuclear data samples and runs openmc in the same slurm submission. Random seeds for SANDY are interpolated into an input file by `UncertaintyQuantification.jl`.
 
 Features:
 * OpenMC configuration agnostic (can use DAGMC + libmesh)
 * Convenient HPC resource manager (can use multiple nodes for OpenMC simulations). Enabled through UQ.jl [HPC simulation manager](https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc)
 * Sample multiple nuclides simultaneously (from available ENDF covariance files)
+* Exposure to more advanced sampling algorithms from `UncertaintyQuantification.jl`
+* Dimension reduction of Nuclear Data covariance matrices using SVDs
 
-Contributions to make it less clunky are welcome.
+Contributions and issues are welcome.
 
 ## Installation
 
@@ -22,27 +24,33 @@ Contributions to make it less clunky are welcome.
    - `julia -e 'using Pkg; Pkg.add("HDF5")'`
    - `julia -e 'using Pkg; Pkg.add("StatsBase")'`
    - `julia -e 'using Pkg; Pkg.add("Plots")'`
-8. Download nuclear data (ENDF and HDF5)
+7. Download nuclear data (ENDF and HDF5)
 8. Install openmc_uq python package:
    - `pip install .`
 
-## To run my example
+## To run a basic Monte Carlo OpenMC wrap of SANDY
 
-1. Modify your top path in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L8) (the top directory of this repo)
-2. Modify your endf path in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L19)
-3. Modify your openmc cross_sections.xml path in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L25)
-4. Change my HPC credentials to your HPC credentials (plus your desired partition etc) in [these lines](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L70)
+See `example/simple_tokamak` for example
+
+1. Configure the `uq_inputs.json` input script
+
+2. Run it! `julia MonteCarlo.jl uq_inputs.json`
+- Or submit `julia MonteCarlo.jl uq_inputs.json` in a slurm script with a few cpus
+
+Things to consider while configuring the input file:
+
+- Modify `solver_exe`
+- Modify your `endf_dir`
+- Modify your openmc cross_sections.xml (ideally the same library as whatever ENDF library you've specified)
+- Modify the `openmc_xml_dir`, should point to the directory containing your OpenMC input files
+- Modify the HPC credentials
    - You can optionally change the `throttle` (max samples run simultaneous)
    - You can optionally change `ntasks` (5 cores gives a simulation time ~2 mins per simulation)
+   - You can optionally change `nodes` for larger simulations
    - You can optionally set a `batchsize` (max samples submitted simultaneous) see [docs](https://friesischscott.github.io/UncertaintyQuantification.jl/dev/manual/hpc)
-   - You can optionally change the number of samples [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L96). Currently set to 1000 samples
-
-5. Modify the "extras" that will be injected into slurm script to run your model, in [this line](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L82)
-    - For me, this was loading openmc, activating my python environment, and loading NJOY
-6. Run it! From inside `examples/simple_tokamak`
-    - `julia`
-    - `include("MonteCarlo.jl")`
-    - Or submit `julia -e 'include("MonteCarlo.jl")'` in a slurm script with 1 task
+   - You can optionally change the number of samples. Currently set to 100 samples
+- Modify the `command list`, to what needs to be loaded to run your OpenMC model
+- Modify the `work_dir`, to the directory where you would like simulations to be run
 
 This should produce the similar figures to `example/simple_tokamak/figures`. If you're not interested in computing a failure probability, the limitstate function can be ignored. You make also simulate samples without using `probability_of_failure` function. This can be done by
 
@@ -50,27 +58,30 @@ This should produce the similar figures to `example/simple_tokamak/figures`. If 
 samples = sample(inputs)
 evaluate!(ext, samples)
 ```
-Where `inputs` and `ext` are the inputs and external model as defined in `MonteCarlo.jl`. The tallies of interest must then be extracted manually however.
+Where `inputs` and `ext` are the inputs and external model as defined in `MonteCarlo.jl`.
 
-## To run your example
+## To run a more advanced sampling strategy (variance reduction)
 
-In addition to the above instructions:
+See `example/simple_tokamak_advanced` for example
 
-1. Make a new folder in `examples`, and copy `MonteCarlo.jl` and `run_model.py`
-2. Change [this directory](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L22) to the directory of your model (.xml files, .h5m files, ...)
-3. Change the list of nuclides you wish to sample [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L17)
-4. Output your tally of interest [in lines 65-79](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L65)
-5. Change the extractor to your tally of interest [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L33)
-   - Currently only scalar tallies can be "extracted", but you can generate samples of any tally (e.g. spectra, meshes), and extract them yourself.
+1. Configure the `uq_inputs.json` input script
 
-6. Change the `nodes` and `ntasks` to your desired resources, [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L74)
-   - If you increase the `nodes` to more than 1, you must match it [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/src/run_openmc.py#L64) 😅
+2. Setup the simulation `python3 setup.py uq_inputs.json`
 
-8. 😅 Change the length of the 'seeds' [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/run_model.py#L31) to the length of the nuclides
-   - If `nuclides = ["Fe54", "Fe56"]`, then `seeds = [{{{   :X1   }}}, {{{   :X2   }}}]`
-   - If `len(nuclides) == 50`, then `seeds = [{{{   :X1   }}}, {{{   :X2   }}}, ... , {{{   :X50   }}}]`
-9. 😅 Do the same for the RandomVariables [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L6) and [here](https://github.com/AnderGray/openmc_UQ/blob/4e6a457408502dbb96848ecc2bf314fc61eb2b5c/example/simple_tokamak/MonteCarlo.jl#L17)
+3. Run it! `julia LatinHypercube.jl uq_inputs.json`
+- Or submit `julia LatinHypercube.jl uq_inputs.json` in a slurm script with a few cpus
 
-10. Run it!
+Other variance reduction, such as Subset Simulation are available, for evaluating design reliability, such as P(TBR < 1.05).
 
-The "😅" are locations where the workflow can be clearly improved (among other places)
+### What does `setup.py` do? 
+
+It performs an SVD of all the covariances available within your specified ENDF library, stores the matrices, and computes the number of components to capture 99% of the variance of each nuclide. 
+
+For most nuclides it is quite expensive to compute SVDs, so parallelism is also provided. In a slurm script:
+
+```shell
+SLURM_NTASKS=10 #(e.g.)
+python3 setup.py uq_inputs.json
+```
+
+### Note: currently only MT33 (cross section) covariances are captured by this.
