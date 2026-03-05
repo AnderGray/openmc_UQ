@@ -62,7 +62,7 @@ Where `inputs` and `ext` are the inputs and external model as defined in `MonteC
 
 ## To run a more advanced sampling strategy (variance reduction)
 
-See `example/simple_tokamak_subset` for example
+See `example/simple_tokamak_advanced` for example
 
 1. Configure the `uq_inputs.json` input script
 

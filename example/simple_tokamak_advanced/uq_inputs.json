@@ -1,5 +1,5 @@
 {
-    "solver_exe": "/home/ir-gray4/work/sims/openmc_UQ/example/simple_tokamak_subset/run_model.py",
+    "solver_exe": "/home/ir-gray4/work/sims/openmc_UQ/example/simple_tokamak_advanced/run_model.py",
     "solver_inputs": {
         "cross_section_path": "/home/ir-gray4/work/NuclearData/tendl-2019-hdf5/cross_sections.xml",
         "endf_dir": "/home/ir-gray4/work/NuclearData/tendl_2019_endf/neutron",
@@ -28,7 +28,7 @@
     "solver_config": "config.json",
     "reliability_qoi_name": "TBR",
     "reliability_qoi_criteria": 1.05,
-    "work_dir": "/home/ir-gray4/work/sims/openmc_UQ/uq_results",
+    "work_dir": "/home/ir-gray4/work/sims/openmc_UQ/example/simple_tokamak_advanced/uq_results",
     "num_samples": 100,
     "throttle": 200,
     "command_list": ["source /home/ir-gray4/work/opt/openmc_intel_helen/profiles/openmc_profile", "source ~/.virtualenvs/openmc/bin/activate", "module load njoy/21", "export NJOY=njoy"],
