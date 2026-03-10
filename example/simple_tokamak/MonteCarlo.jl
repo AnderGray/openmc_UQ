@@ -75,10 +75,25 @@ function resolve_nuclides!(solver_inputs::Dict{String,Any})
     return nuclides
 end
 
+function should_autoload_nuclides(solver_inputs::Dict{String,Any})
+    return !haskey(solver_inputs, "nuclides") ||
+           solver_inputs["nuclides"] === nothing ||
+           (solver_inputs["nuclides"] isa AbstractVector && isempty(solver_inputs["nuclides"]))
+end
+
 # Set local variables
 solver_exe               = inputs["solver_exe"]
-solver_inputs            = Dict(inputs["solver_inputs"])
+raw_solver_inputs        = Dict(inputs["solver_inputs"])
+autoload_nuclides        = should_autoload_nuclides(raw_solver_inputs)
+solver_inputs            = Dict(raw_solver_inputs)
 resolved_nuclides        = resolve_nuclides!(solver_inputs)
+if autoload_nuclides
+    inputs["solver_inputs"]["nuclides"] = resolved_nuclides
+    open(input_file, "w") do f
+        JSON.print(f, inputs, 4)
+    end
+    println("Persisted $(length(resolved_nuclides)) sampled nuclides to '$input_file'.")
+end
 solver_config            = inputs["solver_config"]
 reliability_qoi_name     = inputs["reliability_qoi_name"]
 reliability_qoi_criteria = inputs["reliability_qoi_criteria"]
