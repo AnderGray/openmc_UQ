@@ -43,6 +43,9 @@ Things to consider while configuring the input file:
 - Modify your `endf_dir`
 - Modify your openmc cross_sections.xml (ideally the same library as whatever ENDF library you've specified)
 - Modify the `openmc_xml_dir`, should point to the directory containing your OpenMC input files
+- `solver_inputs["nuclides"]` is optional:
+  - If omitted, set to `null`, or set to `[]`, nuclides are auto-loaded from `openmc_xml_dir/materials.xml`
+  - If provided as a non-empty list, only the listed nuclides are sampled
 - Modify the HPC credentials
    - You can optionally change the `throttle` (max samples run simultaneous)
    - You can optionally change `ntasks` (5 cores gives a simulation time ~2 mins per simulation)
@@ -75,7 +78,9 @@ Other variance reduction, such as Subset Simulation are available, for evaluatin
 
 ### What does `setup.py` do? 
 
-It performs an SVD of all the covariances available within your specified ENDF library, stores the matrices, and computes the number of components to capture 99% of the variance of each nuclide. 
+It performs an SVD of all the covariances available within your specified ENDF library, stores the matrices, and computes the number of components to capture 99% of the variance of each nuclide.
+If `solver_inputs["nuclides"]` is omitted, `null`, or `[]`, `setup.py` auto-loads nuclides from `openmc_xml_dir/materials.xml`.
+`setup.py` then filters out nuclides with missing ENDF/covariance data and writes both the filtered `solver_inputs["nuclides"]` and `solver_inputs["dimensions"]["dims"]` back to `uq_inputs.json`.
 
 For most nuclides it is quite expensive to compute SVDs, so parallelism is also provided. In a slurm script:
 

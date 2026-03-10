@@ -6,7 +6,12 @@ import numpy as np
 
 from multiprocessing import Pool
 
-from openmc_uq.utils import get_nuclide_paths, check_covariance, svd_and_save_error
+from openmc_uq.utils import (
+    get_nuclide_paths,
+    check_covariance,
+    svd_and_save_error,
+    resolve_nuclides,
+)
 
 parser = argparse.ArgumentParser()
 parser.add_argument("input_file")
@@ -17,12 +22,17 @@ inputs_dict={}
 with open(args.input_file) as handle:
     inputs_dict = json.load(handle)
 
-nuclides =  inputs_dict["solver_inputs"]["nuclides"]
+solver_inputs = inputs_dict["solver_inputs"]
+nuclides = resolve_nuclides(
+    solver_inputs.get("nuclides"),
+    solver_inputs["openmc_xml_dir"],
+)
 
 nuclides = np.array(nuclides)
 
-endf_folder = inputs_dict["solver_inputs"]["endf_dir"]
-save_folder = inputs_dict["solver_inputs"]["pre_processed_dir"]
+endf_folder = solver_inputs["endf_dir"]
+save_folder = solver_inputs["pre_processed_dir"]
+n_requested = len(nuclides)
 
 paths = get_nuclide_paths(endf_folder, nuclides)
 paths = np.array(paths)
@@ -36,7 +46,17 @@ have_covs = [check_covariance(file) for file in paths]
 nuclides = nuclides[have_covs]
 paths = paths[have_covs]
 
-N_workers = int(os.getenv('SLURM_NTASKS'))
+if len(nuclides) == 0:
+    raise RuntimeError(
+        "No nuclides remain after filtering for available ENDF files and covariance data."
+    )
+
+if len(nuclides) < n_requested:
+    print(
+        f"Filtered out {n_requested - len(nuclides)} nuclides due to missing ENDF files/covariance data."
+    )
+
+N_workers = int(os.getenv("SLURM_NTASKS", "1"))
 print(f"Performing svd with N_workers={N_workers}")
 
 print("Beginning NJOY processing")
@@ -60,13 +80,10 @@ reduced_dims, full_dims = map(list, zip(*results))
 print()
 print()
 print("---------------------------------------------------------------------")
-print(f"Nuclides {nuclides} have been sucessfully processed and have the following reduced dimensions")
+print(f"Nuclides {nuclides} have been successfully processed and have the following reduced dimensions")
 print(f"reduced_dims: {reduced_dims}")
 print(f"full_dims: {full_dims}")
 print("---------------------------------------------------------------------")
-print()
-print()
-print("########## TODO ADD ADDITIONAL WARNING THAT SOME NUCLIDES MAY HAVE BEEN REMOVED FROM THE LIST IF NO COVARIANCE FOUND ############")
 print()
 print()
 
@@ -82,9 +99,15 @@ if inputs_dict["dimension_reduction"]:
 else:
     nuclide_dim_sim = full_dims
 
+inputs_dict["solver_inputs"]["nuclides"] = nuclides.tolist()
 inputs_dict["solver_inputs"]["dimensions"] = {
     "dims": nuclide_dim_sim,
     }
+
+print(
+    f"Writing updated solver_inputs with {len(nuclides)} nuclides "
+    f"and {len(nuclide_dim_sim)} dimensions."
+)
 
 # Save back to file
 with open(args.input_file, "w") as f:

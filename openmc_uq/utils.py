@@ -8,6 +8,81 @@ from sandy import Endf6
 import openmc.data.reaction
 from pathlib import Path
 from scipy.linalg import svd
+import xml.etree.ElementTree as ET
+
+
+def _unique_preserve_order(values: list[str]) -> list[str]:
+    """Return unique values in first-seen order."""
+    unique = []
+    seen = set()
+    for value in values:
+        if value in seen:
+            continue
+        seen.add(value)
+        unique.append(value)
+    return unique
+
+
+def get_nuclides_from_materials_xml(materials_xml: str | Path) -> list[str]:
+    """
+    Parse `materials.xml` and return unique nuclide names in first-seen order.
+    """
+    materials_xml = Path(materials_xml).resolve()
+    if not materials_xml.is_file():
+        raise FileNotFoundError(
+            f"Cannot auto-populate nuclides: '{materials_xml}' was not found."
+        )
+
+    try:
+        root = ET.parse(materials_xml).getroot()
+    except ET.ParseError as exc:
+        raise ValueError(f"Failed to parse '{materials_xml}': {exc}") from exc
+
+    nuclides = []
+    for nuclide in root.findall(".//nuclide"):
+        name = nuclide.get("name")
+        if name:
+            nuclides.append(name)
+
+    nuclides = _unique_preserve_order(nuclides)
+    if len(nuclides) == 0:
+        raise ValueError(
+            f"Cannot auto-populate nuclides: no '<nuclide ... name=\"...\"/>' entries "
+            f"were found in '{materials_xml}'."
+        )
+
+    return nuclides
+
+
+def resolve_nuclides(nuclides, openmc_xml_dir: str | Path) -> list[str]:
+    """
+    Resolve nuclides from explicit input or fallback to openmc_xml_dir/materials.xml.
+
+    Fallback is triggered when `nuclides` is missing/null/empty list.
+    """
+    if nuclides is None or (isinstance(nuclides, list) and len(nuclides) == 0):
+        materials_xml = Path(openmc_xml_dir).resolve() / "materials.xml"
+        resolved = get_nuclides_from_materials_xml(materials_xml)
+        print(
+            f"No nuclides were specified. Loaded {len(resolved)} nuclides from "
+            f"'{materials_xml}'."
+        )
+        return resolved
+
+    if not isinstance(nuclides, list):
+        raise TypeError(
+            "Invalid `nuclides` input: expected a list, null, or missing key."
+        )
+
+    resolved = []
+    for i, nuclide in enumerate(nuclides):
+        if not isinstance(nuclide, str) or len(nuclide.strip()) == 0:
+            raise ValueError(
+                f"Invalid nuclide at index {i}: expected a non-empty string, got {nuclide!r}."
+            )
+        resolved.append(nuclide)
+
+    return resolved
 
 def get_nuclide_paths(endf_path: str, nuclides: list[str]) -> list[str]:
     """
