@@ -34,7 +34,9 @@ See `example/simple_tokamak` for example
 
 1. Configure the `uq_inputs.json` input script
 
-2. Run it! `julia MonteCarlo.jl uq_inputs.json`
+2. Setup nuclides and covariance filtering: `python3 setup.py uq_inputs.json`
+
+3. Run it! `julia MonteCarlo.jl uq_inputs.json`
 - Or submit `julia MonteCarlo.jl uq_inputs.json` in a slurm script with a few cpus
 
 Things to consider while configuring the input file:
@@ -46,6 +48,7 @@ Things to consider while configuring the input file:
 - `solver_inputs["nuclides"]` is optional:
   - If omitted, set to `null`, or set to `[]`, nuclides are auto-loaded from `openmc_xml_dir/materials.xml`
   - If provided as a non-empty list, only the listed nuclides are sampled
+  - `setup.py` filters this list to nuclides with both an ENDF file and MF33 covariance data, then writes the filtered list back to `uq_inputs.json`
 - Modify the HPC credentials
    - You can optionally change the `throttle` (max samples run simultaneous)
    - You can optionally change `ntasks` (5 cores gives a simulation time ~2 mins per simulation)

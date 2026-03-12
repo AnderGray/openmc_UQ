@@ -22,78 +22,9 @@ end
 println("Reading inputs from: ", input_file)
 inputs = JSON.parsefile(input_file)
 
-function parse_nuclides_from_materials_xml(materials_xml_path::String)
-    if !isfile(materials_xml_path)
-        error("Cannot auto-populate nuclides: '$materials_xml_path' was not found.")
-    end
-
-    pattern = r"<nuclide\b[^>]*\bname=['\"]([^'\"]+)['\"]"
-    nuclides = String[]
-    for line in eachline(materials_xml_path)
-        for m in eachmatch(pattern, line)
-            push!(nuclides, m.captures[1])
-        end
-    end
-
-    nuclides = unique(nuclides)
-    if isempty(nuclides)
-        error("Cannot auto-populate nuclides: no '<nuclide ... name=\"...\"/>' entries were found in '$materials_xml_path'.")
-    end
-
-    return nuclides
-end
-
-function resolve_nuclides!(solver_inputs::Dict{String,Any})
-    if !haskey(solver_inputs, "nuclides") ||
-       solver_inputs["nuclides"] === nothing ||
-       (solver_inputs["nuclides"] isa AbstractVector && isempty(solver_inputs["nuclides"]))
-        if !haskey(solver_inputs, "openmc_xml_dir")
-            error("Cannot auto-populate nuclides: `openmc_xml_dir` is missing from solver inputs.")
-        end
-        materials_xml = joinpath(String(solver_inputs["openmc_xml_dir"]), "materials.xml")
-        nuclides = parse_nuclides_from_materials_xml(materials_xml)
-        solver_inputs["nuclides"] = nuclides
-        println("No nuclides were specified. Loaded $(length(nuclides)) nuclides from '$materials_xml'.")
-        return nuclides
-    end
-
-    raw_nuclides = solver_inputs["nuclides"]
-    if !(raw_nuclides isa AbstractVector)
-        error("Invalid `nuclides` input: expected an array, null, or missing key.")
-    end
-
-    nuclides = String[]
-    for (i, nuclide) in enumerate(raw_nuclides)
-        nuclide_str = strip(string(nuclide))
-        if isempty(nuclide_str)
-            error("Invalid nuclide at index $i: expected a non-empty string.")
-        end
-        push!(nuclides, nuclide_str)
-    end
-
-    solver_inputs["nuclides"] = nuclides
-    return nuclides
-end
-
-function should_autoload_nuclides(solver_inputs::Dict{String,Any})
-    return !haskey(solver_inputs, "nuclides") ||
-           solver_inputs["nuclides"] === nothing ||
-           (solver_inputs["nuclides"] isa AbstractVector && isempty(solver_inputs["nuclides"]))
-end
-
 # Set local variables
 solver_exe               = inputs["solver_exe"]
-raw_solver_inputs        = Dict(inputs["solver_inputs"])
-autoload_nuclides        = should_autoload_nuclides(raw_solver_inputs)
-solver_inputs            = Dict(raw_solver_inputs)
-resolved_nuclides        = resolve_nuclides!(solver_inputs)
-if autoload_nuclides
-    inputs["solver_inputs"]["nuclides"] = resolved_nuclides
-    open(input_file, "w") do f
-        JSON.print(f, inputs, 4)
-    end
-    println("Persisted $(length(resolved_nuclides)) sampled nuclides to '$input_file'.")
-end
+solver_inputs            = Dict(inputs["solver_inputs"])
 solver_config            = inputs["solver_config"]
 reliability_qoi_name     = inputs["reliability_qoi_name"]
 reliability_qoi_criteria = inputs["reliability_qoi_criteria"]
@@ -193,7 +124,7 @@ sampling = MonteCarlo(num_samples)
 ############################################################################
 # Define random variables corresponding to seeds for each nuclide.
 INT64MAX=typemax(Int64)
-nuclides=resolved_nuclides
+nuclides=solver_inputs["nuclides"]
 num_seeds=length(nuclides)
 random_variable_list=Vector{RandomVariable}()
 seed_string_list=Vector{String}()
