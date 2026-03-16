@@ -33,7 +33,7 @@ def sample_nuclide_sandy(nuclide: str, endf_path: str, seed33: int) -> RandomDat
     acetape = out_dir / f"ace_{nuclide}_rand"
     sandy_command = (
         f"python3 -m sandy.sampling {file} "
-        f"--samples 1 --outname {acetape} --S33 {seed33} "
+        f"--samples 1 --outname {acetape} --seed33 {seed33} "
         f"--mf 33 --acer --temperature 293.6"
     )
     os.system(sandy_command)
