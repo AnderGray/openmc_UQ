@@ -10,6 +10,7 @@ import numpy as np
 
 import openmc
 import openmc_uq
+from openmc_uq.utils import resolve_nuclides
 
 parser = argparse.ArgumentParser()
 parser.add_argument("input_file")
@@ -20,15 +21,15 @@ inputs_dict={}
 with open(args.input_file) as handle:
     inputs_dict = json.load(handle)
 
-# Nuclides to sample
-nuclides = inputs_dict["nuclides"]
+# Directory of openmc model.
+openmc_xml_dir = inputs_dict["openmc_xml_dir"]
+
+# Nuclides to sample (explicit list or fallback from materials.xml)
+nuclides = resolve_nuclides(inputs_dict.get("nuclides"), openmc_xml_dir)
 
 # ENDF directory. Used to generate random data.
 endf_path = inputs_dict["endf_dir"]
 pre_processed_dir = inputs_dict["pre_processed_dir"]
-
-# Directory of openmc model.
-openmc_xml_dir = inputs_dict["openmc_xml_dir"]
 
 # Local directory name to run in
 run_dir = inputs_dict["run_dir"]
@@ -52,6 +53,12 @@ with open(sample_file, "r") as f:
 
 # Number of dimensions for each nuclide
 dims = np.array(inputs_dict["dimensions"]["dims"])
+if len(dims) != len(nuclides):
+    raise ValueError(
+        f"Length mismatch: got {len(dims)} dimensions for {len(nuclides)} nuclides. "
+        "Run setup.py and ensure `nuclides` and `dimensions` are aligned."
+    )
+
 dim_cum = np.cumsum(dims)
 dim_cum = np.insert(dim_cum, 0, 0)
 

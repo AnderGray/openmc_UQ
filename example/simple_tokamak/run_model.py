@@ -8,6 +8,7 @@ from pathlib import Path
 import sys
 import openmc
 import openmc_uq
+from openmc_uq.utils import resolve_nuclides
 
 parser = argparse.ArgumentParser()
 parser.add_argument("input_file")
@@ -18,17 +19,22 @@ inputs_dict={}
 with open(args.input_file) as handle:
     inputs_dict = json.load(handle)
 
+# Directory of openmc model.
+openmc_xml_dir = inputs_dict["openmc_xml_dir"]
+
+# Nuclides to sample (explicit list or fallback from materials.xml)
+nuclides = resolve_nuclides(inputs_dict.get("nuclides"), openmc_xml_dir)
+
 # Random seeds (one for each nuclide)
 seeds = inputs_dict["seeds"]
-
-# Nuclides to sample
-nuclides = inputs_dict["nuclides"]
+if len(seeds) != len(nuclides):
+    raise ValueError(
+        f"Length mismatch: got {len(seeds)} seeds for {len(nuclides)} nuclides. "
+        "Ensure seeds and nuclides have identical lengths."
+    )
 
 # ENDF directory. Used to generate random data.
 endf_path = inputs_dict["endf_dir"]
-
-# Directory of openmc model.
-openmc_xml_dir = inputs_dict["openmc_xml_dir"]
 
 # Local directory name to run in
 run_dir = inputs_dict["run_dir"]
