@@ -75,7 +75,8 @@ with Pool(N_workers) as pool:
     results = [r.get() for r in async_results]  # list of tuples
 
 reduced_dims, full_dims = map(list, zip(*results))
-
+reduced_dims = [int(x) for x in reduced_dims]
+full_dims = [int(x) for x in full_dims]
 
 print()
 print()
