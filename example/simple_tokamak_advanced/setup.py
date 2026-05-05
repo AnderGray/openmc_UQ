@@ -2,6 +2,7 @@
 import argparse
 import json
 import os
+import tempfile
 import numpy as np
 
 from multiprocessing import Pool
@@ -75,7 +76,8 @@ with Pool(N_workers) as pool:
     results = [r.get() for r in async_results]  # list of tuples
 
 reduced_dims, full_dims = map(list, zip(*results))
-
+reduced_dims = [int(x) for x in reduced_dims]
+full_dims = [int(x) for x in full_dims]
 
 print()
 print()
@@ -109,6 +111,11 @@ print(
     f"and {len(nuclide_dim_sim)} dimensions."
 )
 
-# Save back to file
-with open(args.input_file, "w") as f:
-    json.dump(inputs_dict, f, indent=4)  # indent=4 makes it pretty
+# Save back to file atomically so interruptions do not corrupt the input JSON.
+input_dir = os.path.dirname(os.path.abspath(args.input_file)) or "."
+with tempfile.NamedTemporaryFile("w", dir=input_dir, delete=False) as tmp:
+    json.dump(inputs_dict, tmp, indent=4)
+    tmp.write("\n")
+    temp_name = tmp.name
+
+os.replace(temp_name, args.input_file)
